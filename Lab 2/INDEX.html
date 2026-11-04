@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ms" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malaysia Demographic & Population Analytics (1970 - 2026)</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        darkbg: '#0f172a',
+                        darkcard: '#1e293b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .light .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.5);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 min-h-screen custom-scrollbar">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-800/80 px-4 lg:px-8 py-4 mb-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-blue-600/20 text-blue-500 rounded-xl border border-blue-500/30">
+                    <i class="fa-solid fa-chart-line text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Malaysia Demographic Analytics
+                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">1970 - 2026</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Analisis Rasmi Populasi & Unjuran Demografi Malaysia</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                <!-- Data Status Indicator -->
+                <div class="hidden sm:flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Data Kemaskini: 2026</span>
+                </div>
+
+                <!-- Export CSV Button -->
+                <button onclick="exportCSVData()" class="flex items-center gap-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-lg border border-slate-700 transition">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Eksport Data</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 pb-12 space-y-6">
+
+        <!-- Tab & Filter Navigation -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/60 p-2 rounded-xl border border-slate-800">
+            <div class="flex items-center gap-1 w-full sm:w-auto overflow-x-auto">
+                <button id="tab-overview" onclick="switchTab('overview')" class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-lg transition">
+                    <i class="fa-solid fa-table-cells-large mr-2"></i>Ringkasan Utama
+                </button>
+                <button id="tab-table" onclick="switchTab('table')" class="px-4 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-table mr-2"></i>Jadual Data Detail
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <label for="yearRangeSelect" class="text-xs text-slate-400 font-medium whitespace-nowrap">Sorotan Tempoh:</label>
+                <select id="yearRangeSelect" onchange="filterDataByYearRange()" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">Keseluruhan (1970 - 2026)</option>
+                    <option value="recent">Moden (2000 - 2026)</option>
+                    <option value="historical">Historikal (1970 - 1999)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- MAIN OVERVIEW SECTION -->
+        <div id="view-overview" class="space-y-6">
+            
+            <!-- KPI Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- KPI 1 -->
+                <div class="glass-card p-5 rounded-2xl border hover:border-blue-500/40 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jumlah Populasi (2026)</p>
+                            <h3 class="text-2xl lg:text-3xl font-extrabold text-white mt-1">34.39M</h3>
+                            <p class="text-xs text-emerald-400 font-medium mt-2 flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>+216.0% sejak 1970 (10.88M)</span>
+                            </p>
+                        </div>
+                        <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+                            <i class="fa-solid fa-users text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="glass-card p-5 rounded-2xl border hover:border-blue-500/40 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Populasi Lelaki</p>
+                            <h3 class="text-2xl lg:text-3xl font-extrabold text-white mt-1">18.03M</h3>
+                            <p class="text-xs text-blue-400 font-medium mt-2">
+                                <span>52.4% daripada populasi</span>
+                            </p>
+                        </div>
+                        <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                            <i class="fa-solid fa-mars text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="glass-card p-5 rounded-2xl border hover:border-blue-500/40 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Populasi Perempuan</p>
+                            <h3 class="text-2xl lg:text-3xl font-extrabold text-white mt-1">16.36M</h3>
+                            <p class="text-xs text-pink-400 font-medium mt-2">
+                                <span>47.6% daripada populasi</span>
+                            </p>
+                        </div>
+                        <div class="p-3 bg-pink-500/10 text-pink-400 rounded-xl">
+                            <i class="fa-solid fa-venus text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 4 -->
+                <div class="glass-card p-5 rounded-2xl border hover:border-blue-500/40 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bukan Warganegara</p>
+                            <h3 class="text-2xl lg:text-3xl font-extrabold text-white mt-1">3.37M</h3>
+                            <p class="text-xs text-amber-400 font-medium mt-2">
+                                <span>9.81% daripada populasi</span>
+                            </p>
+                        </div>
+                        <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+                            <i class="fa-solid fa-passport text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid - Row 1 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Trend Projection Line Chart (Span 2 cols) -->
+                <div class="lg:col-span-2 glass-card p-5 rounded-2xl border border-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-blue-500"></i>
+                                Trend Pertumbuhan & Unjuran Populasi (1970 - 2050)
+                            </h2>
+                            <p class="text-xs text-slate-400">Data Sebenar (1970–2026) dan Unjuran Regresi Linear ke 2050</p>
+                        </div>
+                        <span class="text-xs bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-md font-mono self-start sm:self-auto">Sasaran 2050: ~42.84M</span>
+                    </div>
+                    <div class="relative h-72 lg:h-80 w-full">
+                        <canvas id="chartGrowthProjection"></canvas>
+                    </div>
+                </div>
+
+                <!-- Ethnic Breakdown Donut Chart -->
+                <div class="glass-card p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2 mb-1">
+                            <i class="fa-solid fa-chart-pie text-emerald-500"></i>
+                            Pecahan Etnik (2026)
+                        </h2>
+                        <p class="text-xs text-slate-400 mb-4">Komposisi Penduduk Mengikut Kumpulan Etnik</p>
+                    </div>
+                    <div class="relative h-64 w-full flex items-center justify-center">
+                        <canvas id="chartEthnicity"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid - Row 2 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Age Pyramid Bar Chart -->
+                <div class="glass-card p-5 rounded-2xl border border-slate-800">
+                    <div class="mb-4">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-column text-amber-500"></i>
+                            Taburan Populasi Mengikut Kumpulan Umur (2026)
+                        </h2>
+                        <p class="text-xs text-slate-400">18 Kumpulan Umur (dalam unit Ribu Orang)</p>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="chartAgeDistribution"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gender Ratio Trend Area Chart -->
+                <div class="glass-card p-5 rounded-2xl border border-slate-800">
+                    <div class="mb-4">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-venus-mars text-indigo-500"></i>
+                            Perbandingan Trend Lelaki vs Perempuan (1970 - 2026)
+                        </h2>
+                        <p class="text-xs text-slate-400">Pertumbuhan populasi berikut jantina merentasi masa</p>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="chartGenderTrend"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TABLE VIEW SECTION -->
+        <div id="view-table" class="hidden glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Jadual Ringkasan Populasi Tahunan (1970 - 2026)</h2>
+                    <p class="text-xs text-slate-400">Data aggregat populasi mengikut tahun dan jantina (dalam ribu orang)</p>
+                </div>
+                <div class="w-full sm:w-64">
+                    <input type="text" id="tableSearchInput" onkeyup="filterTable()" placeholder="Cari Tahun..." class="w-full bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-800/80 text-slate-200 font-semibold uppercase tracking-wider border-b border-slate-700">
+                        <tr>
+                            <th class="py-3 px-4">Tahun</th>
+                            <th class="py-3 px-4">Jumlah Populasi ('000)</th>
+                            <th class="py-3 px-4">Anggaran Populasi (Juta)</th>
+                            <th class="py-3 px-4">Lelaki ('000)</th>
+                            <th class="py-3 px-4">Perempuan ('000)</th>
+                            <th class="py-3 px-4">Nisbah Lelaki %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="divide-y divide-slate-800/60 font-mono">
+                        <!-- Data populated dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-4 lg:px-8 py-6 text-center text-xs text-slate-500 border-t border-slate-800/60">
+        <p>Malaysia Demographic Analytics Dashboard &copy; 2026 | Sumber Data: Department of Statistics Malaysia (DOSM) / population_malaysia.csv</p>
+    </footer>
+
+    <!-- JavaScript Data Processing & Chart Logic -->
+    <script>
+        // Raw Annual Summary Dataset (Aggregated from population_malaysia.csv)
+        const rawAnnualData = [
+            { year: 1970, total: 10881.8, male: 5519.8, female: 5362.0 },
+            { year: 1975, total: 12300.3, male: 6241.1, female: 6059.2 },
+            { year: 1980, total: 13879.3, male: 7035.7, female: 6843.6 },
+            { year: 1985, total: 15882.7, male: 8060.0, female: 7822.7 },
+            { year: 1990, total: 18102.4, male: 9193.3, female: 8909.1 },
+            { year: 1995, total: 20681.8, male: 10515.6, female: 10166.2 },
+            { year: 2000, total: 23494.9, male: 11961.4, female: 11533.5 },
+            { year: 2005, total: 26045.5, male: 13279.1, female: 12766.4 },
+            { year: 2010, total: 28588.6, male: 14725.2, female: 13863.4 },
+            { year: 2015, total: 31186.1, male: 16186.7, female: 14999.4 },
+            { year: 2020, total: 32447.4, male: 16962.2, female: 15485.2 },
+            { year: 2021, total: 32580.4, male: 17006.1, female: 15574.3 },
+            { year: 2022, total: 32697.7, male: 17042.8, female: 15654.9 },
+            { year: 2023, total: 33379.8, male: 17467.5, female: 15912.3 },
+            { year: 2024, total: 34057.8, male: 17876.1, female: 16181.7 },
+            { year: 2025, total: 34241.9, male: 17972.5, female: 16269.4 },
+            { year: 2026, total: 34389.4, male: 18031.9, female: 16357.5 }
+        ];
+
+        // Ethnicity Data 2026
+        const ethnicityData2026 = {
+            labels: ['Bumi Malay', 'Cina', 'Bumi Lain', 'Bukan Warganegara', 'India', 'Warganegara Lain'],
+            values: [18126.1, 6829.2, 3816.9, 3373.6, 2006.5, 237.1] // in '000
+        };
+
+        // Age Group Data 2026
+        const ageGroupData2026 = {
+            labels: ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80-84', '85+'],
+            values: [2165.2, 2482.1, 2641.5, 2698.4, 3125.1, 3134.6, 2871.2, 2819.5, 2702.4, 2182.1, 1785.4, 1521.0, 1362.4, 1134.2, 812.5, 514.2, 245.1, 157.5]
+        };
+
+        // Chart References
+        let chartProjection, chartEthnicity, chartAge, chartGender;
+
+        // Initialize Charts on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initGrowthProjectionChart();
+            initEthnicityChart();
+            initAgeChart();
+            initGenderChart();
+            renderDataTable(rawAnnualData);
+        });
+
+        // 1. Projection Line Chart
+        function initGrowthProjectionChart() {
+            const ctx = document.getElementById('chartGrowthProjection').getContext('2d');
+            
+            // Generate Projection Points (2027 to 2050 using m=343.05, c=-660424)
+            const historicalYears = rawAnnualData.map(d => d.year);
+            const historicalValues = rawAnnualData.map(d => d.total);
+            
+            const projectionYears = [2030, 2035, 2040, 2045, 2050];
+            const projectionValues = projectionYears.map(y => Math.round((343.0544 * y) - 660424.04));
+
+            const allYears = [...historicalYears, ...projectionYears];
+            const datasetActual = [...historicalValues, ...Array(projectionYears.length).fill(null)];
+            
+            // Connect last actual point to projection
+            const datasetProjection = [...Array(historicalYears.length - 1).fill(null), historicalValues[historicalValues.length - 1], ...projectionValues];
+
+            chartProjection = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: allYears,
+                    datasets: [
+                        {
+                            label: 'Data Sebenar (1970-2026)',
+                            data: datasetActual,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Unjuran Model (2026-2050)',
+                            data: datasetProjection,
+                            borderColor: '#f59e0b',
+                            borderDash: [6, 6],
+                            backgroundColor: 'transparent',
+                            tension: 0.1,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            pointStyle: 'rectRot'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: ${(ctx.raw / 1000).toFixed(2)}M (${ctx.raw.toLocaleString()} ribu)`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' } },
+                        y: { 
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
+                            ticks: { color: '#64748b', callback: v => (v/1000).toFixed(0) + 'M' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Ethnicity Donut Chart
+        function initEthnicityChart() {
+            const ctx = document.getElementById('chartEthnicity').getContext('2d');
+            chartEthnicity = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ethnicityData2026.labels,
+                    datasets: [{
+                        data: ethnicityData2026.values,
+                        backgroundColor: [
+                            '#10b981', // Bumi Malay
+                            '#3b82f6', // Chinese
+                            '#8b5cf6', // Bumi Other
+                            '#f59e0b', // Non-Citizen
+                            '#ec4899', // Indian
+                            '#64748b'  // Other Citizen
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12 } },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = ctx.raw;
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = ((val / total) * 100).toFixed(1);
+                                    return `${ctx.label}: ${(val/1000).toFixed(2)}M (${pct}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        // 3. Age Bar Chart
+        function initAgeChart() {
+            const ctx = document.getElementById('chartAgeDistribution').getContext('2d');
+            chartAge = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ageGroupData2026.labels,
+                    datasets: [{
+                        label: 'Populasi 2026 (Ribu)',
+                        data: ageGroupData2026.values,
+                        backgroundColor: ageGroupData2026.values.map((v, i) => i >= 4 && i <= 8 ? '#f59e0b' : '#3b82f6'),
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Jumlah: ${ctx.raw.toLocaleString()} ribu`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' } }
+                    }
+                }
+            });
+        }
+
+        // 4. Gender Multi-line Area Chart
+        function initGenderChart() {
+            const ctx = document.getElementById('chartGenderTrend').getContext('2d');
+            chartGender = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: rawAnnualData.map(d => d.year),
+                    datasets: [
+                        {
+                            label: 'Lelaki',
+                            data: rawAnnualData.map(d => d.male),
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Perempuan',
+                            data: rawAnnualData.map(d => d.female),
+                            borderColor: '#ec4899',
+                            backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8' } },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: ${(ctx.raw/1000).toFixed(2)}M`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b' } },
+                        y: { 
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
+                            ticks: { color: '#64748b', callback: v => (v/1000).toFixed(0) + 'M' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Data Table
+        function renderDataTable(data) {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            
+            data.forEach(row => {
+                const totalMillions = (row.total / 1000).toFixed(2);
+                const malePct = ((row.male / row.total) * 100).toFixed(1);
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-white">${row.year}</td>
+                    <td class="py-3 px-4 text-blue-400 font-semibold">${row.total.toLocaleString()}</td>
+                    <td class="py-3 px-4 text-emerald-400">${totalMillions}M</td>
+                    <td class="py-3 px-4">${row.male.toLocaleString()}</td>
+                    <td class="py-3 px-4">${row.female.toLocaleString()}</td>
+                    <td class="py-3 px-4 text-slate-400">${malePct}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Tab Switching Logic
+        function switchTab(tab) {
+            const overviewBtn = document.getElementById('tab-overview');
+            const tableBtn = document.getElementById('tab-table');
+            const overviewView = document.getElementById('view-overview');
+            const tableView = document.getElementById('view-table');
+
+            if (tab === 'overview') {
+                overviewBtn.className = 'px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-lg transition';
+                tableBtn.className = 'px-4 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition';
+                overviewView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+            } else {
+                tableBtn.className = 'px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-lg transition';
+                overviewBtn.className = 'px-4 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition';
+                tableView.classList.remove('hidden');
+                overviewView.classList.add('hidden');
+            }
+        }
+
+        // Filter Table Search
+        function filterTable() {
+            const query = document.getElementById('tableSearchInput').value.toLowerCase();
+            const filtered = rawAnnualData.filter(d => d.year.toString().includes(query));
+            renderDataTable(filtered);
+        }
+
+        // Year Range Filter for Charts
+        function filterDataByYearRange() {
+            const range = document.getElementById('yearRangeSelect').value;
+            let filtered = rawAnnualData;
+
+            if (range === 'recent') {
+                filtered = rawAnnualData.filter(d => d.year >= 2000);
+            } else if (range === 'historical') {
+                filtered = rawAnnualData.filter(d => d.year < 2000);
+            }
+
+            // Update Gender Chart Scale
+            chartGender.data.labels = filtered.map(d => d.year);
+            chartGender.data.datasets[0].data = filtered.map(d => d.male);
+            chartGender.data.datasets[1].data = filtered.map(d => d.female);
+            chartGender.update();
+        }
+
+        // Export Data as CSV
+        function exportCSVData() {
+            let csvContent = "data:text/csv;charset=utf-8,Tahun,Jumlah_Ribuan,Lelaki_Ribuan,Perempuan_Ribuan\n";
+            rawAnnualData.forEach(r => {
+                csvContent += `${r.year},${r.total},${r.male},${r.female}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Malaysia_Population_Summary_1970_2026.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
