@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Embun Home Stay</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F5F2EB;
+      color: #2D3748;
+    }
+    h1, h2, h3, .font-serif-custom {
+      font-family: 'Playfair Display', serif;
+    }
+    .bg-cream {
+      background-color: #F5F2EB;
+    }
+    .bg-green-dark {
+      background-color: #435334;
+    }
+    .bg-green-dark:hover {
+      background-color: #35422B;
+    }
+    .text-green-dark {
+      color: #435334;
+    }
+    .border-green-dark {
+      border-color: #435334;
+    }
+    .card-bg {
+      background-color: #EBE5D9;
+    }
+    .nav-link.active {
+      font-weight: 700;
+      color: #435334;
+      border-bottom: 2px solid #435334;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- NAVIGATION BAR -->
+  <header class="sticky top-0 z-50 bg-[#F5F2EB]/95 backdrop-blur-sm border-b border-[#E0D8C8]">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-2 cursor-pointer" onclick="showPage('home')">
+        <i class="fa-solid font-bold text-2xl text-green-dark fa-house-chimney"></i>
+        <span class="font-serif-custom text-xl font-bold text-green-dark tracking-wide">Embun Home Stay</span>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-700">
+        <button onclick="showPage('home')" id="nav-home" class="nav-link py-1 hover:text-green-dark transition">Home</button>
+        <button onclick="showPage('about')" id="nav-about" class="nav-link py-1 hover:text-green-dark transition">About</button>
+        <button onclick="showPage('rooms')" id="nav-rooms" class="nav-link py-1 hover:text-green-dark transition">Rooms</button>
+        <button onclick="showPage('facilities')" id="nav-facilities" class="nav-link py-1 hover:text-green-dark transition">Facilities</button>
+        <button onclick="showPage('booking')" id="nav-booking" class="nav-link py-1 hover:text-green-dark transition">Booking</button>
+        <button onclick="showPage('contact')" id="nav-contact" class="nav-link py-1 hover:text-green-dark transition">Contact</button>
+      </nav>
+
+      <button onclick="showPage('booking')" class="hidden md:inline-flex bg-green-dark text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-opacity-90 transition shadow-sm">
+        Book Now
+      </button>
+
+      <!-- Mobile Menu Button -->
+      <button onclick="toggleMobileMenu()" class="md:hidden text-green-dark text-2xl focus:outline-none">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div id="mobile-menu" class="hidden md:hidden bg-[#F5F2EB] border-b border-[#E0D8C8] px-4 py-3 space-y-2">
+      <button onclick="showPage('home')" class="block w-full text-left py-2 font-medium text-gray-700 hover:text-green-dark">Home</button>
+      <button onclick="showPage('about')" class="block w-full text-left py-2 font-medium text-gray-700 hover:text-green-dark">About</button>
+      <button onclick="showPage('rooms')" class="block w-full text-left py-2 font-medium text-gray-700 hover:text-green-dark">Rooms</button>
+      <button onclick="showPage('facilities')" class="block w-full text-left py-2 font-medium text-gray-700 hover:text-green-dark">Facilities</button>
+      <button onclick="showPage('booking')" class="block w-full text-left py-2 font-medium text-gray-700 hover:text-green-dark">Booking</button>
+      <button onclick="showPage('contact')" class="block w-full text-left py-2 font-medium text-gray-700 hover:text-green-dark">Contact</button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-grow">
+    
+    <!-- PAGE 1: HOME -->
+    <section id="page-home" class="page-content py-8 md:py-12">
+      <div class="max-w-5xl mx-auto px-4">
+        <!-- Hero Section -->
+        <div class="text-center mb-8">
+          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-3 tracking-tight">Embun Home Stay</h1>
+          <p class="text-base md:text-lg text-gray-600 max-w-xl mx-auto">
+            Penginapan nyaman dengan pemandangan sawah, sungai dan gunung di Kedah.
+          </p>
+        </div>
+
+        <!-- Banner Image -->
+        <div class="relative w-full h-80 md:h-[450px] rounded-xl overflow-hidden shadow-md mb-8">
+          <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80" alt="Embun Home Stay Kedah" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/20"></div>
+          <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+            <button onclick="showPage('booking')" class="bg-green-dark text-white px-8 py-3 rounded-full font-medium shadow-lg hover:bg-opacity-95 transition flex items-center space-x-2">
+              <span>Tempah Sekarang</span>
+              <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Key Info Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div class="card-bg p-5 rounded-lg text-center shadow-sm flex flex-col items-center justify-center">
+            <i class="fa-solid fa-bed text-2xl text-green-dark mb-2"></i>
+            <span class="text-sm font-semibold text-gray-800">5 Bilik</span>
+          </div>
+          <div class="card-bg p-5 rounded-lg text-center shadow-sm flex flex-col items-center justify-center">
+            <i class="fa-solid fa-shower text-2xl text-green-dark mb-2"></i>
+            <span class="text-sm font-semibold text-gray-800">2 Bilik Air</span>
+          </div>
+          <div class="card-bg p-5 rounded-lg text-center shadow-sm flex flex-col items-center justify-center">
+            <i class="fa-solid fa-users text-2xl text-green-dark mb-2"></i>
+            <span class="text-sm font-semibold text-gray-800">Sesuai Keluarga</span>
+          </div>
+          <div class="card-bg p-5 rounded-lg text-center shadow-sm flex flex-col items-center justify-center">
+            <i class="fa-solid fa-mountain text-2xl text-green-dark mb-2"></i>
+            <span class="text-sm font-semibold text-gray-800">Pemandangan Semula Jadi</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: ABOUT -->
+    <section id="page-about" class="page-content hidden py-8 md:py-12">
+      <div class="max-w-5xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-10">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Tentang<br>Embun Home Stay</h2>
+            <p class="text-gray-600 leading-relaxed text-sm md:text-base">
+              Embun Home Stay adalah penginapan bertemakan kampung moden yang menawarkan suasana tenang, dikelilingi oleh keindahan sawah padi, sungai yang jernih dan panorama gunung di Kedah.
+            </p>
+          </div>
+          <div class="rounded-xl overflow-hidden shadow-md h-64 md:h-80">
+            <img src="https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=800&q=80" alt="Suasana Homestay Kampung Moden" class="w-full h-full object-cover">
+          </div>
+        </div>
+
+        <!-- Features Icons -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div class="card-bg p-6 rounded-lg text-center flex flex-col items-center">
+            <i class="fa-solid fa-[#435334] fa-leaf text-3xl text-green-dark mb-3"></i>
+            <h3 class="font-bold text-gray-800 text-sm mb-1">Suasana Tenang</h3>
+          </div>
+          <div class="card-bg p-6 rounded-lg text-center flex flex-col items-center">
+            <i class="fa-solid fa-people-roof text-3xl text-green-dark mb-3"></i>
+            <h3 class="font-bold text-gray-800 text-sm mb-1">Sesuai untuk Keluarga & Kumpulan</h3>
+          </div>
+          <div class="card-bg p-6 rounded-lg text-center flex flex-col items-center">
+            <i class="fa-solid fa-mountain-sun text-3xl text-green-dark mb-3"></i>
+            <h3 class="font-bold text-gray-800 text-sm mb-1">Pemandangan Sawah, Sungai & Gunung</h3>
+          </div>
+        </div>
+
+        <!-- Location Box -->
+        <div class="relative rounded-xl overflow-hidden shadow-md h-64 md:h-72">
+          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80" alt="Pemandangan Sawah Padi Kedah" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/30 flex items-end p-6">
+            <div class="bg-white/90 backdrop-blur-md p-4 rounded-lg flex items-center justify-between w-full md:w-auto md:space-x-8">
+              <div>
+                <div class="flex items-center space-x-2 text-green-dark font-bold text-sm">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <span>Lokasi</span>
+                </div>
+                <p class="text-xs text-gray-700 font-medium">Kedah, Malaysia</p>
+              </div>
+              <button onclick="showPage('contact')" class="bg-green-dark text-white text-xs px-4 py-2 rounded-md hover:bg-opacity-90 transition">
+                Lihat di Peta &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: ROOMS -->
+    <section id="page-rooms" class="page-content hidden py-8 md:py-12">
+      <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">Bilik Penginapan</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <!-- Bilik 1 -->
+          <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-[#E0D8C8]">
+            <img src="https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=600&q=80" alt="Bilik 1" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="font-bold text-gray-800">Bilik 1</h3>
+              <p class="text-sm text-gray-600">Katil Queen</p>
+            </div>
+          </div>
+
+          <!-- Bilik 2 -->
+          <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-[#E0D8C8]">
+            <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80" alt="Bilik 2" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="font-bold text-gray-800">Bilik 2</h3>
+              <p class="text-sm text-gray-600">Katil Queen</p>
+            </div>
+          </div>
+
+          <!-- Bilik 3 -->
+          <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-[#E0D8C8]">
+            <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=600&q=80" alt="Bilik 3" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="font-bold text-gray-800">Bilik 3</h3>
+              <p class="text-sm text-gray-600">Katil Single x2</p>
+            </div>
+          </div>
+
+          <!-- Bilik 4 -->
+          <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-[#E0D8C8]">
+            <img src="https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=600&q=80" alt="Bilik 4" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="font-bold text-gray-800">Bilik 4</h3>
+              <p class="text-sm text-gray-600">Katil Queen</p>
+            </div>
+          </div>
+
+          <!-- Bilik 5 -->
+          <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-[#E0D8C8]">
+            <img src="https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=600&q=80" alt="Bilik 5" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="font-bold text-gray-800">Bilik 5</h3>
+              <p class="text-sm text-gray-600">Katil Single x2</p>
+            </div>
+          </div>
+
+          <!-- Summary Card -->
+          <div class="card-bg rounded-lg p-6 flex flex-col justify-center space-y-4 shadow-sm">
+            <div class="flex items-center space-x-3">
+              <i class="fa-solid fa-bed text-2xl text-green-dark"></i>
+              <div>
+                <h4 class="font-bold text-gray-800">5 Bilik</h4>
+                <p class="text-xs text-gray-600">(3 Queen, 2 Twin)</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <i class="fa-solid fa-shower text-2xl text-green-dark"></i>
+              <div>
+                <h4 class="font-bold text-gray-800">2 Bilik Air</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: FACILITIES -->
+    <section id="page-facilities" class="page-content hidden py-8 md:py-12">
+      <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">Kemudahan Kami</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <!-- Icon Facilities Grid -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-wifi text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">Wi-Fi Percuma</span>
+            </div>
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-snowflake text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">Penyaman Udara</span>
+            </div>
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-tv text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">TV</span>
+            </div>
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-box text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">Peti Sejuk</span>
+            </div>
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-utensils text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">Dapur Lengkap</span>
+            </div>
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-square-parking text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">Parkir Percuma</span>
+            </div>
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-shower text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">2 Bilik Air</span>
+            </div>
+            <div class="card-bg p-4 rounded-lg flex flex-col items-center justify-center text-center">
+              <i class="fa-solid fa-users text-2xl text-green-dark mb-2"></i>
+              <span class="text-xs font-semibold text-gray-800">Sesuai Kumpulan</span>
+            </div>
+          </div>
+
+          <!-- Image side -->
+          <div class="rounded-xl overflow-hidden shadow-md h-80">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" alt="Ruang Kemudahan Homestay" class="w-full h-full object-cover">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5: BOOKING -->
+    <section id="page-booking" class="page-content hidden py-8 md:py-12">
+      <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">Tempah Sekarang</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <!-- Price Card -->
+          <div class="card-bg p-8 rounded-xl shadow-sm">
+            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2">Harga Penginapan</h3>
+            <div class="flex items-baseline space-x-2 mb-6">
+              <span class="text-4xl font-bold text-gray-900">RM 250</span>
+              <span class="text-gray-600 text-sm">/ satu malam</span>
+            </div>
+
+            <ul class="space-y-3">
+              <li class="flex items-center space-x-3 text-sm text-gray-700">
+                <i class="fa-solid fa-circle-check text-green-dark text-base"></i>
+                <span>5 Bilik Tidur</span>
+              </li>
+              <li class="flex items-center space-x-3 text-sm text-gray-700">
+                <i class="fa-solid fa-circle-check text-green-dark text-base"></i>
+                <span>2 Bilik Air</span>
+              </li>
+              <li class="flex items-center space-x-3 text-sm text-gray-700">
+                <i class="fa-solid fa-circle-check text-green-dark text-base"></i>
+                <span>Sesuai untuk keluarga & kumpulan</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Booking Form -->
+          <div class="bg-white p-6 rounded-xl border border-[#E0D8C8] shadow-sm">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Borang Tempahan</h3>
+            <form id="bookingForm" onsubmit="handleBooking(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fa-regular fa-user mr-1"></i> Nama Penuh</label>
+                <input type="text" id="fullname" required class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-green-dark" placeholder="Nama Penuh Anda">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fa-solid fa-phone mr-1"></i> Nombor Telefon</label>
+                <input type="tel" id="phone" required class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-green-dark" placeholder="012-3456789">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fa-regular fa-calendar mr-1"></i> Tarikh Masuk</label>
+                  <input type="date" id="checkin" required class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-green-dark">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fa-regular fa-calendar mr-1"></i> Tarikh Keluar</label>
+                  <input type="date" id="checkout" required class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-green-dark">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1"><i class="fa-solid fa-users mr-1"></i> Bilangan Tetamu</label>
+                <select id="guests" required class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-green-dark bg-white">
+                  <option value="">Pilih bilangan tetamu</option>
+                  <option value="1-4">1 - 4 Tetamu</option>
+                  <option value="5-8">5 - 8 Tetamu</option>
+                  <option value="9-12">9 - 12 Tetamu</option>
+                  <option value="12+">Lebih 12 Tetamu</option>
+                </select>
+              </div>
+
+              <button type="submit" class="w-full bg-green-dark text-white py-3 rounded-md font-medium text-sm hover:bg-opacity-95 transition mt-2">
+                Hantar Tempahan
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6: CONTACT -->
+    <section id="page-contact" class="page-content hidden py-8 md:py-12">
+      <div class="max-w-5xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-8">
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Hubungi Kami</h2>
+            <p class="text-sm text-gray-600 mb-6">Ada pertanyaan atau ingin membuat tempahan?<br>Hubungi kami melalui maklumat di bawah.</p>
+
+            <div class="space-y-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full card-bg flex items-center justify-center text-green-dark">
+                  <i class="fa-solid fa-phone"></i>
+                </div>
+                <span class="text-sm font-semibold text-gray-800">+60 12-345 6789</span>
+              </div>
+
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full card-bg flex items-center justify-center text-green-dark">
+                  <i class="fa-solid fa-envelope"></i>
+                </div>
+                <span class="text-sm font-semibold text-gray-800">embunhomestay@gmail.com</span>
+              </div>
+
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full card-bg flex items-center justify-center text-green-dark">
+                  <i class="fa-solid fa-location-dot"></i>
+                </div>
+                <span class="text-sm font-semibold text-gray-800">Kedah, Malaysia</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl overflow-hidden shadow-md h-64">
+            <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80" alt="Embun Home Stay" class="w-full h-full object-cover">
+          </div>
+        </div>
+
+        <!-- Google Maps Section -->
+        <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-[#E0D8C8]">
+          <div class="p-4 bg-[#EBE5D9] border-b border-[#E0D8C8] flex justify-between items-center">
+            <div class="flex items-center space-x-2 text-green-dark font-bold text-sm">
+              <i class="fa-solid fa-map-location-dot"></i>
+              <span>Lokasi Kami</span>
+            </div>
+            <a href="https://maps.google.com" target="_blank" class="bg-green-dark text-white text-xs px-4 py-2 rounded-md hover:bg-opacity-90 transition">
+              Lihat di Google Maps &rarr;
+            </a>
+          </div>
+          <div class="w-full h-64 bg-gray-200">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d507119.2941968846!2d100.27891294879555!3d6.118396035041923!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x304B40B513E0A3F1%3A0x6DFF991D4E033A0!2sKedah%2C%20Malaysia!5e0!3m2!1sms!2smy!4v1700000000000!5m2!1sms!2smy" class="w-full h-full border-0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-green-dark text-white py-6 mt-12">
+    <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-300">
+      <p>&copy; 2026 Embun Home Stay. Hak Cipta Terpelihara.</p>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT FOR ROUTING & INTERACTION -->
+  <script>
+    function showPage(pageId) {
+      // Hide all pages
+      document.querySelectorAll('.page-content').forEach(el => {
+        el.classList.add('hidden');
+      });
+
+      // Show selected page
+      const targetPage = document.getElementById('page-' + pageId);
+      if (targetPage) {
+        targetPage.classList.remove('hidden');
+      }
+
+      // Update Nav active style
+      document.querySelectorAll('.nav-link').forEach(el => {
+        el.classList.remove('active');
+      });
+
+      const activeNav = document.getElementById('nav-' + pageId);
+      if (activeNav) {
+        activeNav.classList.add('active');
+      }
+
+      // Close mobile menu if open
+      document.getElementById('mobile-menu').classList.add('hidden');
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function handleBooking(event) {
+      event.preventDefault();
+      const name = document.getElementById('fullname').value;
+      const phone = document.getElementById('phone').value;
+      const checkin = document.getElementById('checkin').value;
+      const checkout = document.getElementById('checkout').value;
+      const guests = document.getElementById('guests').value;
+
+      if (!name || !phone || !checkin || !checkout || !guests) {
+        alert('Sila isi semua maklumat tempahan.');
+        return;
+      }
+
+      alert('Terima kasih ' + name + '! Tempahan anda telah direkodkan. Kami akan menghubungi anda melalui ' + phone + ' segera.');
+      document.getElementById('bookingForm').reset();
+    }
+
+    // Set default view to home
+    document.addEventListener('DOMContentLoaded', () => {
+      showPage('home');
+    });
+  </script>
+</body>
+</html>

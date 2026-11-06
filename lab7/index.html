@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Juruwang Supermarket</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            user-select: none;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Laser Scanner Beam Pulse */
+        @keyframes laser-glow {
+            0%, 100% { opacity: 0.3; transform: scaleY(1); }
+            50% { opacity: 1; transform: scaleY(1.4); }
+        }
+        .laser-beam {
+            animation: laser-glow 1.2s infinite ease-in-out;
+            box-shadow: 0 0 12px #ef4444, 0 0 20px #ef4444;
+        }
+
+        /* Receipt Print Animation */
+        @keyframes print-receipt {
+            0% { transform: translateY(-100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .animate-receipt {
+            animation: print-receipt 0.4s ease-out forwards;
+        }
+
+        /* Conveyor Belt Stripes */
+        .conveyor-belt {
+            background: repeating-linear-gradient(
+                90deg,
+                #334155,
+                #334155 20px,
+                #1e293b 20px,
+                #1e293b 40px
+            );
+            background-size: 80px 100%;
+        }
+        .conveyor-moving {
+            animation: move-belt 1s linear infinite;
+        }
+        @keyframes move-belt {
+            0% { background-position: 0 0; }
+            100% { background-position: 80px 0; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col min-h-screen p-2 sm:p-4">
+
+    <!-- Top Bar Navigation & Stats -->
+    <header class="max-w-6xl mx-auto w-full bg-slate-800/90 backdrop-blur-md rounded-2xl p-3 shadow-lg border border-slate-700 flex flex-wrap justify-between items-center gap-3 mb-3">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-slate-900 shadow-md text-xl sm:text-2xl font-bold">
+                <i class="fa-solid fa-cash-register"></i>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight leading-none">Juruwang <span class="text-amber-400">Supermarket</span></h1>
+                <p class="text-xs text-slate-400 font-medium">Shift Hari Ke-<span id="stat-day" class="text-amber-400 font-bold">1</span></p>
+            </div>
+        </div>
+
+        <!-- Gameplay Dashboard Stats -->
+        <div class="flex items-center gap-3 sm:gap-6 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700">
+            <div class="text-center">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Wang Terkumpul</span>
+                <span id="stat-money" class="text-base sm:text-lg font-extrabold text-emerald-400 font-mono">RM 0.00</span>
+            </div>
+            <div class="w-px h-7 bg-slate-700"></div>
+            <div class="text-center">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Tip Bonanza</span>
+                <span id="stat-tips" class="text-base sm:text-lg font-extrabold text-amber-400 font-mono">RM 0.00</span>
+            </div>
+            <div class="w-px h-7 bg-slate-700"></div>
+            <div class="text-center">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Pelanggan</span>
+                <span id="stat-customers" class="text-base sm:text-lg font-bold text-cyan-400">0 / 5</span>
+            </div>
+        </div>
+
+        <!-- Controls & Upgrade Shop Buttons -->
+        <div class="flex items-center gap-2">
+            <button id="btn-open-shop" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5 border border-purple-400/30">
+                <i class="fa-solid fa-store text-amber-300"></i> Kedai Naik Taraf
+            </button>
+            <button id="btn-sound" class="w-9 h-9 bg-slate-700 border border-slate-600 rounded-xl text-slate-200 hover:text-amber-400 flex items-center justify-center transition-all shadow-sm">
+                <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Workspace Screen -->
+    <main class="max-w-6xl mx-auto w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-3">
+        
+        <!-- Left Side: Customer Counter & Conveyor Belt (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-3">
+            
+            <!-- Customer Avatar & Dialogue Bubble Card -->
+            <div class="bg-slate-800/90 rounded-2xl p-4 shadow-md border border-slate-700 flex items-center justify-between relative overflow-hidden min-h-[120px]">
+                
+                <!-- Customer Profile Info -->
+                <div class="flex items-center gap-4 z-10">
+                    <div class="relative">
+                        <div id="customer-avatar" class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-700 rounded-2xl flex items-center justify-center text-4xl sm:text-5xl shadow-inner border border-slate-600">
+                            👤
+                        </div>
+                        <span id="customer-vip-badge" class="absolute -top-2 -right-2 bg-amber-500 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase shadow hidden">VIP</span>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 id="customer-name" class="text-base sm:text-lg font-bold text-white leading-tight">Pelanggan</h3>
+                            <span id="customer-type-badge" class="bg-slate-700 text-slate-300 text-[10px] font-semibold px-2 py-0.5 rounded-full">Biasa</span>
+                        </div>
+                        <p id="customer-speech" class="text-xs text-amber-300 italic font-medium">"Selamat pagi! Tolong imbas barang saya."</p>
+                    </div>
+                </div>
+
+                <!-- Customer Patience Bar -->
+                <div class="flex flex-col items-end gap-1.5 z-10 w-28 sm:w-36">
+                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                        <span id="patience-emoji" class="text-base">😊</span>
+                        <span id="patience-text" class="text-emerald-400">Gembira</span>
+                    </div>
+                    <div class="w-full bg-slate-900 rounded-full h-3 border border-slate-700 p-0.5">
+                        <div id="patience-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-300 w-full"></div>
+                    </div>
+                </div>
+
+                <div class="absolute -right-8 -bottom-8 opacity-5 text-9xl text-white pointer-events-none">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                </div>
+            </div>
+
+            <!-- Conveyor Belt & Barcode Scanner Zone -->
+            <div class="bg-slate-900 rounded-3xl p-4 shadow-inner border border-slate-800 flex-grow flex flex-col justify-between relative min-h-[320px]">
+                
+                <!-- Unscanned Items Tray on Conveyor Belt -->
+                <div class="relative w-full h-36 conveyor-belt conveyor-moving rounded-2xl border-y-4 border-slate-700 flex items-center px-4 gap-4 overflow-x-auto shadow-inner" id="conveyor-container">
+                    <!-- Dynamic Grocery Items rendered via JS -->
+                </div>
+
+                <!-- Laser Barcode Scanner Counter Area -->
+                <div class="mt-4 bg-slate-800 rounded-2xl p-4 border border-slate-700 flex items-center justify-between relative overflow-hidden">
+                    
+                    <!-- Laser Light Line -->
+                    <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-red-500 laser-beam z-10 -translate-x-1/2 pointer-events-none"></div>
+
+                    <!-- Left Drop Target / Scanner Glass -->
+                    <div id="scanner-dropzone" class="w-full h-24 border-2 border-dashed border-red-500/50 bg-red-950/20 rounded-xl flex flex-col items-center justify-center text-center p-2 relative group cursor-pointer hover:border-red-400 transition-all">
+                        <i class="fa-solid fa-qrcode text-red-500/70 text-3xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold text-red-300">ZON PENGIMBAS BARKOD</span>
+                        <span class="text-[10px] text-slate-400">Tarik atau Klik barang di atas ke sini</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: POS Terminal Register & Payment Drawer (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-3">
+            
+            <!-- POS Cash Register Screen -->
+            <div class="bg-slate-800 rounded-3xl p-4 shadow-xl border border-slate-700 flex flex-col justify-between h-full">
+                
+                <!-- Digital POS Header & Receipt List -->
+                <div>
+                    <div class="bg-slate-900 rounded-xl p-3 border border-slate-700 mb-3 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-cyan-400 text-lg"></i>
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Resit POS Terminal</span>
+                        </div>
+                        <span id="pos-status" class="bg-cyan-950 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-800">MEMIMBAS</span>
+                    </div>
+
+                    <!-- Scanned Items Items List Screen -->
+                    <div id="receipt-item-list" class="bg-slate-950 rounded-xl p-3 border border-slate-900 h-44 overflow-y-auto space-y-1.5 font-mono text-xs">
+                        <div class="text-slate-500 text-center py-8 italic">Sila imbas barang di atas kaunter...</div>
+                    </div>
+                </div>
+
+                <!-- POS Pricing Summary -->
+                <div class="bg-slate-900 rounded-xl p-3 border border-slate-700 my-2 space-y-1 font-mono text-xs">
+                    <div class="flex justify-between text-slate-400">
+                        <span>Jumlah Kecil:</span>
+                        <span id="pos-subtotal">RM 0.00</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>Cukai SST (6%):</span>
+                        <span id="pos-tax">RM 0.00</span>
+                    </div>
+                    <div class="w-full h-px bg-slate-800 my-1"></div>
+                    <div class="flex justify-between text-sm sm:text-base font-extrabold text-amber-400">
+                        <span>JUMLAH BESAR:</span>
+                        <span id="pos-total">RM 0.00</span>
+                    </div>
+                </div>
+
+                <!-- Payment Processing Section -->
+                <div id="payment-box" class="bg-slate-900 rounded-2xl p-3 border border-slate-700 space-y-3">
+                    
+                    <!-- Selected Payment Method Indicator -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Kaedah Bayaran Pelanggan:</span>
+                        <span id="payment-type-badge" class="bg-emerald-950 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-money-bill-wave"></i> TUNAI
+                        </span>
+                    </div>
+
+                    <!-- Dynamic Payment Panel Content (TUNAI vs KAD) -->
+                    <div id="payment-interactive-panel" class="space-y-2">
+                        <!-- Populated via JS based on payment mode -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Cash Register Money Drawer Modal (Used for TUNAI Change) -->
+    <div id="modal-cash-drawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 z-50 hidden">
+        <div class="bg-slate-800 rounded-3xl shadow-2xl border border-slate-700 max-w-2xl w-full p-5 sm:p-6 flex flex-col gap-4 animate-bounce-short">
+            
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-emerald-500/20 text-emerald-400 rounded-lg flex items-center justify-center text-base">
+                        <i class="fa-solid fa-cash-register"></i>
+                    </div>
+                    <h3 class="text-lg font-bold font-heading text-white">Laci Wang Tunai Juruwang</h3>
+                </div>
+                <button id="btn-close-drawer" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Cash Math Calculation Header -->
+            <div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-2xl border border-slate-700 font-mono text-center">
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase block">Jumlah Beli</span>
+                    <span id="drawer-total-due" class="text-sm font-bold text-white">RM 0.00</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase block">Pelanggan Bayar</span>
+                    <span id="drawer-cash-given" class="text-sm font-bold text-amber-400">RM 0.00</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase block">Baki Perlu Dipulangkan</span>
+                    <span id="drawer-change-needed" class="text-sm font-bold text-emerald-400">RM 0.00</span>
+                </div>
+            </div>
+
+            <!-- Current Selected Change Buffer -->
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-900 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Wang Baki Yang Dipilih:</span>
+                    <div id="drawer-selected-display" class="text-lg font-extrabold text-cyan-400 font-mono">RM 0.00</div>
+                </div>
+                <button id="btn-reset-change" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-all">
+                    <i class="fa-solid fa-rotate-left"></i> Sıfrkan
+                </button>
+            </div>
+
+            <!-- Cash Drawer Notes & Coins Selector Grid -->
+            <div class="space-y-3">
+                <!-- Ringgit Banknotes -->
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Wang Kertas (Banknotes):</span>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        <button onclick="addChangeMoney(100)" class="bg-purple-900/40 hover:bg-purple-800/60 border border-purple-500/50 py-3 rounded-xl font-bold text-purple-300 text-sm shadow transition-all active:scale-95">RM 100</button>
+                        <button onclick="addChangeMoney(50)" class="bg-cyan-900/40 hover:bg-cyan-800/60 border border-cyan-500/50 py-3 rounded-xl font-bold text-cyan-300 text-sm shadow transition-all active:scale-95">RM 50</button>
+                        <button onclick="addChangeMoney(20)" class="bg-amber-900/40 hover:bg-amber-800/60 border border-amber-500/50 py-3 rounded-xl font-bold text-amber-300 text-sm shadow transition-all active:scale-95">RM 20</button>
+                        <button onclick="addChangeMoney(10)" class="bg-rose-900/40 hover:bg-rose-800/60 border border-rose-500/50 py-3 rounded-xl font-bold text-rose-300 text-sm shadow transition-all active:scale-95">RM 10</button>
+                        <button onclick="addChangeMoney(5)" class="bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-500/50 py-3 rounded-xl font-bold text-emerald-300 text-sm shadow transition-all active:scale-95">RM 5</button>
+                        <button onclick="addChangeMoney(1)" class="bg-blue-900/40 hover:bg-blue-800/60 border border-blue-500/50 py-3 rounded-xl font-bold text-blue-300 text-sm shadow transition-all active:scale-95">RM 1</button>
+                    </div>
+                </div>
+
+                <!-- Sen Coins -->
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Duit Syiling (Coins):</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="addChangeMoney(0.50)" class="bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 py-2.5 rounded-xl font-bold text-amber-200 text-xs shadow transition-all active:scale-95">50 Sen</button>
+                        <button onclick="addChangeMoney(0.20)" class="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-500/40 py-2.5 rounded-xl font-bold text-slate-200 text-xs shadow transition-all active:scale-95">20 Sen</button>
+                        <button onclick="addChangeMoney(0.10)" class="bg-amber-800/30 hover:bg-amber-800/50 border border-amber-600/40 py-2.5 rounded-xl font-bold text-amber-400 text-xs shadow transition-all active:scale-95">10 Sen</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirm Change Button -->
+            <button id="btn-submit-change" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold rounded-2xl text-sm transition-all shadow-lg shadow-emerald-950 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-hand-holding-dollar text-base"></i> SERAHKAN BAKI & SELESAI
+            </button>
+        </div>
+    </div>
+
+    <!-- Upgrade Shop Modal -->
+    <div id="modal-shop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 z-50 hidden">
+        <div class="bg-slate-800 rounded-3xl shadow-2xl border border-purple-500/30 max-w-xl w-full p-6 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <h3 class="text-xl font-bold font-heading text-white">Kedai Naik Taraf Supermarket</h3>
+                </div>
+                <button id="btn-close-shop" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Upgrades List -->
+            <div class="space-y-3 overflow-y-auto pr-1 flex-grow my-2">
+                
+                <!-- Upgrade 1: Auto-Scanner Assist -->
+                <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Pengimbas Laser Pantas</h4>
+                            <p class="text-xs text-slate-400">Barang diimbas secara automatik apabila disentuh.</p>
+                        </div>
+                    </div>
+                    <button id="buy-auto-scan" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition-all shadow">
+                        RM 50.00
+                    </button>
+                </div>
+
+                <!-- Upgrade 2: Conveyor Belt Speed -->
+                <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-cyan-500/10 text-cyan-400 rounded-xl flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-gauge-high"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Tali Sawat Laju</h4>
+                            <p class="text-xs text-slate-400">Pelanggan meletakkan barang lebih pantas.</p>
+                        </div>
+                    </div>
+                    <button id="buy-fast-belt" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition-all shadow">
+                        RM 80.00
+                    </button>
+                </div>
+
+                <!-- Upgrade 3: Tip Booster -->
+                <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-700 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Hiasan Kaunter VIP</h4>
+                            <p class="text-xs text-slate-400">Meningkatkan jumlah tip pelanggan sebanyak +50%.</p>
+                        </div>
+                    </div>
+                    <button id="buy-tip-boost" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition-all shadow">
+                        RM 120.00
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Summary Overlay Modal -->
+    <div id="modal-summary" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 rounded-3xl shadow-2xl border border-slate-700 max-w-md w-full p-6 text-center flex flex-col items-center">
+            
+            <div class="w-20 h-20 bg-amber-500/20 text-amber-400 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-amber-500/30">
+                <i class="fa-solid fa-sun"></i>
+            </div>
+
+            <h2 class="text-2xl font-bold font-heading text-white mb-1">Shift Hari Selesai!</h2>
+            <p class="text-xs text-slate-400 mb-5">Laporan Jualan & Prestasi Kaunter Juruwang Anda</p>
+
+            <!-- Stats Table -->
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-700 w-full mb-5 space-y-2 font-mono text-xs">
+                <div class="flex justify-between text-slate-300">
+                    <span>Jumlah Jualan Juruwang:</span>
+                    <span id="summary-revenue" class="font-bold text-emerald-400">RM 0.00</span>
+                </div>
+                <div class="flex justify-between text-slate-300">
+                    <span>Jumlah Tip Diterima:</span>
+                    <span id="summary-tips" class="font-bold text-amber-400">RM 0.00</span>
+                </div>
+                <div class="flex justify-between text-slate-300">
+                    <span>Pelanggan Diperingkat:</span>
+                    <span id="summary-customers" class="font-bold text-cyan-400">5 / 5</span>
+                </div>
+            </div>
+
+            <button id="btn-next-day" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold rounded-2xl text-sm transition-all shadow-lg flex items-center justify-center gap-2">
+                Mulakan Shift Hari Seterusnya <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Engine -->
+    <script>
+        // --- Web Audio Synthesizer (Realistic Cashier SFX) ---
+        class CashierSoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.08) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            playBeep() {
+                // High pitch scanner beep
+                this.playTone(1800, 'sine', 0.08, 0.12);
+            }
+
+            playChaChing() {
+                // Cash Register Opening Sound
+                this.init();
+                if (!this.enabled || !this.ctx) return;
+                const notes = [987.77, 1318.51, 1567.98, 2093.00]; // B5, E6, G6, C7
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'triangle', 0.15, 0.1), idx * 60);
+                });
+            }
+
+            playCardTap() {
+                // EDC card tap dual tone
+                this.playTone(1200, 'sine', 0.06, 0.08);
+                setTimeout(() => this.playTone(1600, 'sine', 0.1, 0.08), 70);
+            }
+
+            playError() {
+                // Buzz error sound
+                this.playTone(180, 'sawtooth', 0.2, 0.1);
+            }
+
+            playReceipt() {
+                // Paper print sound effect
+                for(let i=0; i<4; i++) {
+                    setTimeout(() => this.playTone(400 + Math.random()*200, 'sine', 0.02, 0.03), i*30);
+                }
+            }
+        }
+        const sfx = new CashierSoundEngine();
+
+        // --- Supermarket Grocery Items Dataset ---
+        const GROCERY_ITEMS = [
+            { id: 'apple', name: 'Epal Segar', price: 2.50, emoji: '🍎' },
+            { id: 'milk', name: 'Susu UHT 1L', price: 7.20, emoji: '🥛' },
+            { id: 'bread', name: 'Roti Putih', price: 3.80, emoji: '🍞' },
+            { id: 'detergent', name: 'Sabun Baju 2kg', price: 18.90, emoji: '🧴' },
+            { id: 'chocolate', name: 'Coklat Bar', price: 5.50, emoji: '🍫' },
+            { id: 'soda', name: 'Minuman Tin', price: 2.80, emoji: '🥤' },
+            { id: 'pizza', name: 'Pizza Sejuk Beku', price: 14.50, emoji: '🍕' },
+            { id: 'fish', name: 'Ikan Segar', price: 12.00, emoji: '🐟' },
+            { id: 'cheese', name: 'Keju Keju', price: 9.40, emoji: '🧀' },
+            { id: 'chips', name: 'Keripik Kentang', price: 4.20, emoji: '🥔' }
+        ];
+
+        // Customer Profiles
+        const CUSTOMER_NAMES = ['Ahmad', 'Siti', 'Chong', 'Muthu', 'Sarah', 'Jason', 'Nurul', 'David'];
+        const CUSTOMER_AVATARS = ['👨‍💼', '👩‍💼', '👨‍🌾', '👩‍🎨', '🧔', '👵', '👱‍♂️', '👩‍🦰'];
+
+        // Game State Variables
+        let currentDay = 1;
+        let playerMoney = 0;
+        let dayRevenue = 0;
+        let dayTips = 0;
+        let totalCustomersToday = 5;
+        let customersServedCount = 0;
+
+        // Active Customer State
+        let currentCustomer = null;
+        let customerItems = [];
+        let scannedItems = [];
+        let customerPatience = 100; // Max 100
+        let patienceInterval = null;
+        let currentPaymentMode = 'cash'; // 'cash' or 'card'
+        let currentCashGiven = 0;
+        let selectedChangeMoney = 0;
+
+        // Upgrades Owned
+        let hasAutoScan = false;
+        let hasFastBelt = false;
+        let hasTipBoost = false;
+
+        // DOM Elements
+        const conveyorContainer = document.getElementById('conveyor-container');
+        const scannerDropzone = document.getElementById('scanner-dropzone');
+        const receiptItemList = document.getElementById('receipt-item-list');
+        const posSubtotal = document.getElementById('pos-subtotal');
+        const posTax = document.getElementById('pos-tax');
+        const posTotal = document.getElementById('pos-total');
+        const posStatus = document.getElementById('pos-status');
+        const paymentInteractivePanel = document.getElementById('payment-interactive-panel');
+        const paymentTypeBadge = document.getElementById('payment-type-badge');
+
+        // Customer DOM
+        const customerAvatar = document.getElementById('customer-avatar');
+        const customerName = document.getElementById('customer-name');
+        const customerSpeech = document.getElementById('customer-speech');
+        const patienceBar = document.getElementById('patience-bar');
+        const patienceEmoji = document.getElementById('patience-emoji');
+        const patienceText = document.getElementById('patience-text');
+
+        // Drawer DOM
+        const modalCashDrawer = document.getElementById('modal-cash-drawer');
+        const drawerTotalDue = document.getElementById('drawer-total-due');
+        const drawerCashGiven = document.getElementById('drawer-cash-given');
+        const drawerChangeNeeded = document.getElementById('drawer-change-needed');
+        const drawerSelectedDisplay = document.getElementById('drawer-selected-display');
+
+        // Initialize Application
+        function initApp() {
+            setupEventListeners();
+            startNewCustomer();
+        }
+
+        function setupEventListeners() {
+            // Scanner Dropzone Interactions
+            scannerDropzone.addEventListener('dragover', (e) => e.preventDefault());
+            scannerDropzone.addEventListener('drop', handleDropScan);
+            scannerDropzone.addEventListener('click', () => {
+                // Auto scan first unscanned item if available
+                const unscanned = customerItems.find(i => !i.scanned);
+                if (unscanned) scanGroceryItem(unscanned);
+            });
+
+            // Modal Buttons
+            document.getElementById('btn-close-drawer').addEventListener('click', () => modalCashDrawer.classList.add('hidden'));
+            document.getElementById('btn-reset-change').addEventListener('click', () => {
+                selectedChangeMoney = 0;
+                updateDrawerDisplay();
+            });
+            document.getElementById('btn-submit-change').addEventListener('click', verifyCashChangePayment);
+
+            // Shop Modals
+            document.getElementById('btn-open-shop').addEventListener('click', () => document.getElementById('modal-shop').classList.remove('hidden'));
+            document.getElementById('btn-close-shop').addEventListener('click', () => document.getElementById('modal-shop').classList.add('hidden'));
+            document.getElementById('btn-next-day').addEventListener('click', startNextDayShift);
+
+            // Upgrades Purchases
+            document.getElementById('buy-auto-scan').addEventListener('click', () => buyUpgrade('autoScan', 50));
+            document.getElementById('buy-fast-belt').addEventListener('click', () => buyUpgrade('fastBelt', 80));
+            document.getElementById('buy-tip-boost').addEventListener('click', () => buyUpgrade('tipBoost', 120));
+
+            // Sound Toggle
+            document.getElementById('btn-sound').addEventListener('click', () => {
+                sfx.enabled = !sfx.enabled;
+                const icon = document.getElementById('sound-icon');
+                icon.className = sfx.enabled ? "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark text-slate-400";
+            });
+        }
+
+        // --- Customer Generation & Cycle ---
+        function startNewCustomer() {
+            if (customersServedCount >= totalCustomersToday) {
+                endDayShift();
+                return;
+            }
+
+            // Generate Random Customer
+            const name = CUSTOMER_NAMES[Math.floor(Math.random() * CUSTOMER_NAMES.length)];
+            const avatar = CUSTOMER_AVATARS[Math.floor(Math.random() * CUSTOMER_AVATARS.length)];
+            const isVIP = Math.random() < 0.25;
+
+            currentCustomer = { name, avatar, isVIP };
+            customerAvatar.textContent = avatar;
+            customerName.textContent = name;
+            document.getElementById('customer-vip-badge').classList.toggle('hidden', !isVIP);
+            document.getElementById('customer-type-badge').textContent = isVIP ? 'Pelanggan VIP' : 'Pelanggan Biasa';
+
+            customerSpeech.textContent = isVIP ? '"Saya kesuntukan masa! Tolong imbas dengan pantas!"' : '"Selamat pagi! Tolong imbas barang saya."';
+
+            // Reset Item Lists
+            scannedItems = [];
+            customerItems = [];
+            
+            // Random items 3 to 6
+            const itemCount = 3 + Math.floor(Math.random() * 4);
+            for (let i = 0; i < itemCount; i++) {
+                const randomGrocery = GROCERY_ITEMS[Math.floor(Math.random() * GROCERY_ITEMS.length)];
+                customerItems.push({
+                    uid: `item-${Date.now()}-${i}`,
+                    ...randomGrocery,
+                    scanned: false
+                });
+            }
+
+            // Customer Payment Preference (Tunai or Kad)
+            currentPaymentMode = Math.random() < 0.6 ? 'cash' : 'card';
+            paymentTypeBadge.innerHTML = currentPaymentMode === 'cash' ? 
+                `<i class="fa-solid fa-money-bill-wave"></i> TUNAI` : 
+                `<i class="fa-solid fa-credit-card"></i> KAD KREDIT / DEBIT`;
+
+            // Reset Patience Meter
+            customerPatience = 100;
+            clearInterval(patienceInterval);
+            patienceInterval = setInterval(decayPatience, 1000);
+
+            // Render Conveyor Belt Items & POS
+            renderConveyorBelt();
+            updatePOSDisplay();
+            renderPaymentPanel();
+        }
+
+        function decayPatience() {
+            customerPatience -= 2.5;
+            if (customerPatience <= 0) {
+                customerPatience = 0;
+                clearInterval(patienceInterval);
+                customerSpeech.textContent = '"Terlalu lama! Saya tidak mahu beli lagi!"';
+                sfx.playError();
+                setTimeout(() => {
+                    customersServedCount++;
+                    startNewCustomer();
+                }, 1500);
+            }
+            updatePatienceUI();
+        }
+
+        function updatePatienceUI() {
+            patienceBar.style.width = `${customerPatience}%`;
+            if (customerPatience > 65) {
+                patienceBar.className = "bg-emerald-500 h-full rounded-full transition-all duration-300";
+                patienceEmoji.textContent = "😊";
+                patienceText.textContent = "Gembira";
+                patienceText.className = "text-emerald-400";
+            } else if (customerPatience > 30) {
+                patienceBar.className = "bg-amber-500 h-full rounded-full transition-all duration-300";
+                patienceEmoji.textContent = "😐";
+                patienceText.textContent = "Tunggu";
+                patienceText.className = "text-amber-400";
+            } else {
+                patienceBar.className = "bg-rose-500 h-full rounded-full transition-all duration-300";
+                patienceEmoji.textContent = "😡";
+                patienceText.textContent = "Marah";
+                patienceText.className = "text-rose-400";
+            }
+        }
+
+        // --- Conveyor Belt & Drag-and-Drop Scanning ---
+        function renderConveyorBelt() {
+            conveyorContainer.innerHTML = '';
+            
+            customerItems.forEach((item) => {
+                if (!item.scanned) {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-800 border border-slate-600 rounded-2xl p-3 min-w-[90px] h-28 flex flex-col items-center justify-between shadow-lg cursor-grab active:cursor-grabbing hover:border-amber-400 transition-all shrink-0 select-none";
+                    card.draggable = true;
+                    
+                    card.innerHTML = `
+                        <span class="text-3xl">${item.emoji}</span>
+                        <span class="text-[10px] font-bold text-slate-200 text-center leading-tight line-clamp-1">${item.name}</span>
+                        <span class="text-[11px] font-extrabold text-amber-400 font-mono">RM ${item.price.toFixed(2)}</span>
+                    `;
+
+                    // Drag Events
+                    card.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', item.uid);
+                    });
+
+                    // Click to Scan if Auto Scan active
+                    card.addEventListener('click', () => {
+                        if (hasAutoScan) scanGroceryItem(item);
+                    });
+
+                    conveyorContainer.appendChild(card);
+                }
+            });
+
+            if (customerItems.every(i => i.scanned)) {
+                conveyorContainer.innerHTML = `<div class="w-full text-center text-xs font-bold text-emerald-400 italic">Semua barang telah diimbas! Sila proses bayaran.</div>`;
+            }
+        }
+
+        function handleDropScan(e) {
+            e.preventDefault();
+            const uid = e.dataTransfer.getData('text/plain');
+            const item = customerItems.find(i => i.uid === uid);
+            if (item && !item.scanned) {
+                scanGroceryItem(item);
+            }
+        }
+
+        function scanGroceryItem(item) {
+            item.scanned = true;
+            scannedItems.push(item);
+            
+            // Visual & Sound Feedback
+            sfx.playBeep();
+            scannerDropzone.classList.add('bg-red-500/30');
+            setTimeout(() => scannerDropzone.classList.remove('bg-red-500/30'), 150);
+
+            renderConveyorBelt();
+            updatePOSDisplay();
+            renderPaymentPanel();
+        }
+
+        // --- POS Display & Financial Calculations ---
+        function calculateTotals() {
+            const subtotal = scannedItems.reduce((acc, curr) => acc + curr.price, 0);
+            const tax = subtotal * 0.06; // 6% SST
+            const total = subtotal + tax;
+            return { subtotal, tax, total };
+        }
+
+        function updatePOSDisplay() {
+            receiptItemList.innerHTML = '';
+            
+            if (scannedItems.length === 0) {
+                receiptItemList.innerHTML = `<div class="text-slate-500 text-center py-8 italic">Sila imbas barang di atas kaunter...</div>`;
+            } else {
+                scannedItems.forEach((item, index) => {
+                    const row = document.createElement('div');
+                    row.className = "flex justify-between items-center text-slate-200 border-b border-slate-900 pb-1 animate-receipt";
+                    row.innerHTML = `
+                        <span>${index + 1}. ${item.emoji} ${item.name}</span>
+                        <span class="font-bold text-amber-300">RM ${item.price.toFixed(2)}</span>
+                    `;
+                    receiptItemList.appendChild(row);
+                });
+            }
+
+            const { subtotal, tax, total } = calculateTotals();
+            posSubtotal.textContent = `RM ${subtotal.toFixed(2)}`;
+            posTax.textContent = `RM ${tax.toFixed(2)}`;
+            posTotal.textContent = `RM ${total.toFixed(2)}`;
+            
+            // Scroll receipt to bottom
+            receiptItemList.scrollTop = receiptItemList.scrollHeight;
+        }
+
+        // --- Payment Processing Panels ---
+        function renderPaymentPanel() {
+            paymentInteractivePanel.innerHTML = '';
+            const allScanned = customerItems.every(i => i.scanned) && customerItems.length > 0;
+            const { total } = calculateTotals();
+
+            if (!allScanned) {
+                paymentInteractivePanel.innerHTML = `
+                    <div class="text-center py-3 text-xs text-slate-400 italic">
+                        Imbas semua barang pelanggan untuk aktifkan pembayaran.
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentPaymentMode === 'cash') {
+                // Calculate next highest banknote for customer cash given
+                let cashGiven = 10;
+                if (total > 10) cashGiven = 20;
+                if (total > 20) cashGiven = 50;
+                if (total > 50) cashGiven = 100;
+                if (total > 100) cashGiven = Math.ceil(total / 50) * 50;
+
+                currentCashGiven = cashGiven;
+
+                paymentInteractivePanel.innerHTML = `
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs font-mono">
+                        <span class="text-slate-400">Wang Diberi Pelanggan:</span>
+                        <span class="text-amber-400 font-extrabold text-sm">RM ${currentCashGiven.toFixed(2)}</span>
+                    </div>
+                    <button id="btn-open-cash-drawer" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cash-register"></i> BUKA LACI WANG & PULANG BAKI
+                    </button>
+                `;
+
+                document.getElementById('btn-open-cash-drawer').addEventListener('click', openCashDrawerModal);
+            } else {
+                // Card EDC Terminal Mode
+                paymentInteractivePanel.innerHTML = `
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center space-y-2">
+                        <span class="text-xs text-slate-300 font-bold block">Terminal Pembayaran EDC Kad</span>
+                        <button id="btn-process-card" class="w-full py-3 bg-indigo-650 hover:bg-indigo-600 bg-indigo-600 text-white font-extrabold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wifi"></i> TAP / SENTUH KAD KREDIT PELANGGAN
+                        </button>
+                    </div>
+                `;
+
+                document.getElementById('btn-process-card').addEventListener('click', processCardPayment);
+            }
+        }
+
+        // --- Cash Drawer Modal & Change Calculation ---
+        function openCashDrawerModal() {
+            const { total } = calculateTotals();
+            const changeNeeded = currentCashGiven - total;
+
+            drawerTotalDue.textContent = `RM ${total.toFixed(2)}`;
+            drawerCashGiven.textContent = `RM ${currentCashGiven.toFixed(2)}`;
+            drawerChangeNeeded.textContent = `RM ${changeNeeded.toFixed(2)}`;
+
+            selectedChangeMoney = 0;
+            updateDrawerDisplay();
+
+            sfx.playChaChing();
+            modalCashDrawer.classList.remove('hidden');
+        }
+
+        function addChangeMoney(amount) {
+            selectedChangeMoney += amount;
+            // Precision rounding for currency sen
+            selectedChangeMoney = Math.round(selectedChangeMoney * 100) / 100;
+            updateDrawerDisplay();
+            sfx.playCardTap();
+        }
+
+        function updateDrawerDisplay() {
+            drawerSelectedDisplay.textContent = `RM ${selectedChangeMoney.toFixed(2)}`;
+        }
+
+        function verifyCashChangePayment() {
+            const { total } = calculateTotals();
+            const exactChangeNeeded = Math.round((currentCashGiven - total) * 100) / 100;
+
+            modalCashDrawer.classList.add('hidden');
+
+            // Tolerance of 0.05 sen
+            if (Math.abs(selectedChangeMoney - exactChangeNeeded) <= 0.05) {
+                completeTransaction(true);
+            } else {
+                sfx.playError();
+                alert(`Baki Wang Salah! Baki yang betul ialah RM ${exactChangeNeeded.toFixed(2)}. Pelanggan kecewa!`);
+                customerPatience = Math.max(0, customerPatience - 40);
+                updatePatienceUI();
+                completeTransaction(false);
+            }
+        }
+
+        function processCardPayment() {
+            sfx.playCardTap();
+            setTimeout(() => {
+                sfx.playReceipt();
+                completeTransaction(true);
+            }, 600);
+        }
+
+        // --- Complete Transaction & Rewards ---
+        function completeTransaction(isAccurate) {
+            clearInterval(patienceInterval);
+            const { total } = calculateTotals();
+
+            // Calculate Tip Bonus based on speed/patience left
+            let tip = 0;
+            if (isAccurate) {
+                tip = (customerPatience / 100) * 4.0;
+                if (hasTipBoost) tip *= 1.5;
+                if (currentCustomer.isVIP) tip *= 2.0;
+            }
+            tip = Math.round(tip * 100) / 100;
+
+            dayRevenue += total;
+            dayTips += tip;
+            playerMoney += (total + tip);
+            customersServedCount++;
+
+            // Update Header UI Stats
+            document.getElementById('stat-money').textContent = `RM ${playerMoney.toFixed(2)}`;
+            document.getElementById('stat-tips').textContent = `RM ${dayTips.toFixed(2)}`;
+            document.getElementById('stat-customers').textContent = `${customersServedCount} / ${totalCustomersToday}`;
+
+            customerSpeech.textContent = isAccurate ? `"Terima kasih juruwang! Khidmat yang sangat bagus!"` : `"Lain kali harap berhati-hati!"`;
+
+            setTimeout(() => {
+                startNewCustomer();
+            }, 1200);
+        }
+
+        // --- Day Shift & Upgrade System ---
+        function endDayShift() {
+            document.getElementById('summary-revenue').textContent = `RM ${dayRevenue.toFixed(2)}`;
+            document.getElementById('summary-tips').textContent = `RM ${dayTips.toFixed(2)}`;
+            document.getElementById('summary-customers').textContent = `${customersServedCount} / ${totalCustomersToday}`;
+            
+            document.getElementById('modal-summary').classList.remove('hidden');
+        }
+
+        function startNextDayShift() {
+            currentDay++;
+            totalCustomersToday += 2; // Increase difficulty
+            customersServedCount = 0;
+            dayRevenue = 0;
+            dayTips = 0;
+
+            document.getElementById('stat-day').textContent = currentDay;
+            document.getElementById('stat-customers').textContent = `0 / ${totalCustomersToday}`;
+            document.getElementById('modal-summary').classList.add('hidden');
+
+            startNewCustomer();
+        }
+
+        function buyUpgrade(type, cost) {
+            if (playerMoney < cost) {
+                sfx.playError();
+                alert('Wang tunai terkumpul anda tidak mencukupi untuk membeli naik taraf ini!');
+                return;
+            }
+
+            playerMoney -= cost;
+            document.getElementById('stat-money').textContent = `RM ${playerMoney.toFixed(2)}`;
+
+            if (type === 'autoScan') {
+                hasAutoScan = true;
+                const btn = document.getElementById('buy-auto-scan');
+                btn.textContent = 'DIBELI';
+                btn.className = 'px-4 py-2 bg-slate-700 text-emerald-400 font-bold rounded-xl text-xs cursor-default';
+            } else if (type === 'fastBelt') {
+                hasFastBelt = true;
+                const btn = document.getElementById('buy-fast-belt');
+                btn.textContent = 'DIBELI';
+                btn.className = 'px-4 py-2 bg-slate-700 text-emerald-400 font-bold rounded-xl text-xs cursor-default';
+            } else if (type === 'tipBoost') {
+                hasTipBoost = true;
+                const btn = document.getElementById('buy-tip-boost');
+                btn.textContent = 'DIBELI';
+                btn.className = 'px-4 py-2 bg-slate-700 text-emerald-400 font-bold rounded-xl text-xs cursor-default';
+            }
+
+            sfx.playChaChing();
+        }
+
+        // Start Application on Load
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
